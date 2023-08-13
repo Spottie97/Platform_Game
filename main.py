@@ -51,8 +51,6 @@ class Player(pygame.sprite.Sprite):
         pygame.draw.rect(win, self.COLOR, self.rect)
 
 
-
-
 ##Background: Determine the amount of tiles I will need and load the image
 def get_background(name):
     image = pygame.image.load(join("assets", "Background", name))
@@ -74,6 +72,16 @@ def draw(window, background, bg_image, player):
 
     pygame.display.update()
 
+def  handle_move(player):
+    keys = pygame.key.get_pressed()
+
+    player.x_vel = 0
+
+    if keys[pygame.K_a]:
+        player.move_left(PLAYER_VEL)
+    if keys[pygame.K_d]:
+        player.move_right(PLAYER_VEL)
+
 ##Main 
 def main(window):
     clock = pygame.time.Clock()
@@ -89,6 +97,8 @@ def main(window):
             if event.type == pygame.QUIT:
                 run = False
                 break
+        player.loop(FPS)
+        handle_move(player)
         draw(window, background, bg_image, player)
     pygame.quit()
     quit()
