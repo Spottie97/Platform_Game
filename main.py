@@ -202,6 +202,49 @@ class Fire(Object):
 
         if self.animation_count // self.ANIMATION_DELAY > len(sprites):
             self.animation_count = 0
+## Enemy AI patrol
+class Enemy(Object):
+    SPRITES = load_sprite_sheets("MainCharacters", "MaskDude", 32, 32, True)
+    ANIMATION_DELAY = 6
+
+    def __init__(self, x, y, width, height, patrol_points):
+        super().__init__(x, y, width, height)
+        self.patrol_points = patrol_points
+        self.current_point = 0
+        self.speed = 2
+        self.direction = "left"
+        self.animation_count = 0
+        self.animation_name = "run"
+        self.update_sprite()
+    
+    def update_sprite(self):
+        sprite_sheet_name = self.animation_name + "_" + self.direction
+        sprites = self.SPRITES[sprite_sheet_name]
+        sprite_index = (self.animation_count // self.ANIMATION_DELAY) % len(sprites)
+        self.image = sprites[sprite_index]
+        self.animation_count += 1
+        self.update()
+
+    def update(self):
+        self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+        self.mask = pygame.mask.from_surface(self.image)
+    
+    def update(self):
+        self.rect = self.image.get_rect(topleft=(self.rect.x, self.rect.y))
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def patrol(self):
+        target_x, _ = self.patrol_points[self.current_point]
+        if self.rect.x < target_x:
+            self.rect.x += self.speed
+            self.direction = "right"
+        elif self.rect.x > target_x:
+            self.rect.x -= self.speed
+            self.direction = "left"
+        else:
+            self.current_point = (self.current_point + 1) % len(self.patrol_points)
+
+        self.update_sprite()
 
 
 ##Background: Determine the amount of tiles I will need and load the image
@@ -251,6 +294,7 @@ def collide(player, objects, dx):
         if pygame.sprite.collide_mask(player, obj):
             collided_object = obj
             break
+        
     player.move(-dx,0)
     player.update()
     return collided_object
@@ -288,6 +332,13 @@ def main(window):
     floor = [Block(i * block_size, HEIGHT - block_size, block_size) for i in range(-WIDTH // block_size, WIDTH * 2 // block_size)]
     objects = [*floor, Block(0,HEIGHT - block_size * 2, block_size), Block(block_size * 3,HEIGHT - block_size * 4, block_size), fire]
 
+    enemy_height = 50
+    enemy_y = HEIGHT - block_size - enemy_height
+    enemy = Enemy(300, enemy_y, 50, enemy_height, [(300, enemy_y), (500, enemy_y)])
+    objects.append(enemy)
+
+
+
     offset_x = 0
     scroll_area_width = 200
 
@@ -305,8 +356,18 @@ def main(window):
             
         player.loop(FPS)
         fire.loop()
+        enemy.patrol()
         handle_move(player, objects)
         draw(window, background, bg_image, player, objects, offset_x)
+        for obj in objects:
+            if player.rect.colliderect(obj.rect) and isinstance(obj, Enemy):
+                if player.y_vel > 0 and player.rect.bottom <= obj.rect.top + 10:
+                    print("Enemy defeated!")
+                    objects.remove(obj) # Remove the enemy from the objects list
+                else:
+                    print("Game Over!") # You can replace this with any other action
+                    run = True
+
 
         if((player.rect.right - offset_x >= WIDTH - scroll_area_width) and player.x_vel > 0 ) or ((player.rect.left - offset_x <= scroll_area_width) and player.x_vel < 0):
             offset_x += player.x_vel
