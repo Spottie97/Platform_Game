@@ -187,16 +187,17 @@ def handle_vertical_collision(player, objects, dy):
             
 
 ##Movement keys for the player
-def  handle_move(player):
+def  handle_move(player, objects):
     keys = pygame.key.get_pressed()
 
     player.x_vel = 0
-    
 
     if keys[pygame.K_a]:
         player.move_left(PLAYER_VEL)
     if keys[pygame.K_d]:
         player.move_right(PLAYER_VEL)
+
+    handle_vertical_collision(player, objects, player.y_vel)
 
 ##Main 
 def main(window):
@@ -217,7 +218,7 @@ def main(window):
                 run = False
                 break
         player.loop(FPS)
-        handle_move(player)
+        handle_move(player, floor)
         draw(window, background, bg_image, player, floor)
     pygame.quit()
     quit()
