@@ -7,7 +7,7 @@ from load_level import *
 from win_condition import Checkpoint, check_win_condition
 
 pygame.init()
-pygame.display.set_caption("Platfromer")
+pygame.display.set_caption("Platformer")
 
 def main(window):
     clock = pygame.time.Clock()
